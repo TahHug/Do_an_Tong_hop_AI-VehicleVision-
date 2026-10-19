@@ -1,0 +1,47 @@
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# AI model weights
+*.pt
+*.pth
+*.onnx
+*.engine
+*.ckpt
+
+# Ultralytics output
+runs/
+
+# Local test image
+bus.jpg
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Datasets and generated results
+data/raw/
+data/processed/
+data/videos/
+outputs/
+results/
+artifacts/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db
