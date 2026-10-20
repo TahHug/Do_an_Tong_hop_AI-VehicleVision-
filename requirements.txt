@@ -1,0 +1,13 @@
+# VehicleVision - phu thuoc truc tiep (cac phien ban da kiem tra trong .venv ngay 2026-10-19)
+#
+# KHONG cai torch/torchvision tu tep nay. Cai rieng TRUOC, theo README.md (muc "Thiet lap moi truong"):
+#   python -m pip install torch==2.13.0 torchvision==0.28.0 --index-url https://download.pytorch.org/whl/cu132
+#
+# Cac phu thuoc gian tiep duoc keo theo tu dong; xem danh sach day du bang: python -m pip freeze
+#
+# Chua cai (xem README.md, muc "Luu y ve moi truong"): lap, scipy, pytest.
+
+ultralytics==8.4.182
+opencv-python==5.0.0.93
+numpy==2.5.2
+PyYAML==6.0.3
