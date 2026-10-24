@@ -136,4 +136,7 @@ Không ghi chung chung "tracker mặc định". Bảng kết quả (mẫu, để
 
 **Chưa xác minh:** giấy phép/điều khoản của COCO, torchvision và mọi dataset/video ứng viên ở §2; bộ dữ liệu cụ thể sẽ dùng chưa chọn. Giấy phép các thành phần phần mềm: xem README.
 
-**Dữ liệu thử nghiệm đã có:** chưa chọn hay tải video nào (dev hoặc evaluation), chưa có ground truth.
+**Dữ liệu đã chọn (đã đối chiếu nguồn ngày 2026-10-24):**
+- **Highway Vehicle Surveillance Dataset (HVSD)**, Hadi Sadoghi Yazdi (Ferdowsi University of Mashhad), Mendeley Data, phiên bản 1, công bố 18/3/2025, DOI [10.17632/zdgmdg7p25.1](https://data.mendeley.com/datasets/zdgmdg7p25/1), giấy phép **CC BY 4.0** (được dùng và phân phối lại, phải ghi nguồn). Bộ dữ liệu gồm video gốc ở điều kiện nắng, đêm, mưa và kết quả xử lý của tác giả (khung bao, ID từ thuật toán phát hiện góc của họ; đó không phải ground truth đếm tay nên dự án không dùng làm ground truth).
+- Tệp đang có trên máy (ngoài repo, `..\Dataset\Dataset DEVELOPMENT\`, tải dưới dạng `Dataset.zip`): `day.mp4` (3840×2160, 30,17 FPS, 149 khung, 4,9 s; đã xem một khung: video gốc, chưa bị vẽ khung bao, camera cố định trên cao tốc), `night.mp4`, `rain.mp4`. Trang Mendeley không liệt kê tên từng tệp nên việc ba tệp này thuộc HVSD dựa trên xác nhận của chủ dự án. Vai trò: **video dev** (`day.mp4` dùng cho Coding Task 01).
+- **Chưa có video evaluation hợp lệ.** `..\Dataset\Dataset EVULUATION\4.mp4` (1280×720, 50 FPS, 64,8 s, từ dự án Code With Aarohi) chỉ là hình mẫu về góc quay và lưu lượng; **chưa xác minh quyền sử dụng nên không dùng để đánh giá**. Chưa có ground truth.

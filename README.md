@@ -88,6 +88,7 @@ Video, dữ liệu, trọng số và kết quả sinh ra **không** đưa lên G
 | NumPy 2.5.2 | BSD-3-Clause và các giấy phép cho phép khác (siêu dữ liệu gói) | [numpy.org](https://numpy.org) |
 | `lap` (chưa cài, dự kiến 0.5.13) | BSD-2-Clause | [pypi.org/project/lap](https://pypi.org/project/lap/) |
 | ByteTrack (mã gốc của tác giả) | MIT (repository gốc); dự án dùng bản cài đặt trong Ultralytics (AGPL-3.0), không dùng mã gốc | [github.com/ifzhang/ByteTrack](https://github.com/ifzhang/ByteTrack), [arXiv:2110.06864](https://arxiv.org/abs/2110.06864) |
+| Highway Vehicle Surveillance Dataset (video dev, ví dụ `day.mp4`) — H. Sadoghi Yazdi, Mendeley Data, v1, 2025, DOI 10.17632/zdgmdg7p25.1 | CC BY 4.0 (phải ghi nguồn) | [data.mendeley.com/datasets/zdgmdg7p25/1](https://data.mendeley.com/datasets/zdgmdg7p25/1) (đã đọc 2026-10-24) |
 | COCO (dữ liệu huấn luyện của mô hình gốc) | **Chưa xác minh** | [arXiv:1405.0312](https://arxiv.org/abs/1405.0312), [cocodataset.org](https://cocodataset.org/) |
 | torchvision, các thư viện phụ thuộc gián tiếp, video/dataset thử nghiệm | **Chưa xác minh** | — |
 
