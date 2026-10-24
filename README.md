@@ -8,7 +8,7 @@ Với một video giao thông từ camera cố định, chương trình cần:
 
 1. Phát hiện và phân loại xe: ô tô (`car`), xe máy (`motorcycle`), xe buýt (`bus`), xe tải (`truck`).
 2. Gán ID cho từng xe qua các khung hình (tracking).
-3. Đếm số xe đi qua một vạch ảo, theo hướng và loại xe, hạn chế đếm trùng.
+3. Đếm số xe vượt qua một đoạn vạch ảo, theo loại xe (lượt vượt từ cả hai phía cùng vào một tổng, không phân nhóm theo hướng), hạn chế đếm trùng theo ID.
 4. Xuất video đã chú thích cùng CSV/JSON thống kê.
 5. Đo độ chính xác đếm (so với đếm thủ công) và tốc độ xử lý.
 

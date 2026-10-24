@@ -1,6 +1,6 @@
 # EXPERIMENTS — Kế hoạch đánh giá thực nghiệm
 
-Cập nhật: 2026-10-20.
+Cập nhật: 2026-10-24 (bỏ phân loại và thống kê hướng di chuyển khỏi phạm vi bắt buộc).
 
 > **Chưa có thí nghiệm nào được chạy và chưa có số liệu nào.** Tài liệu chỉ định nghĩa dữ liệu, cách đo và quy tắc ghi kết quả. Mọi chỉ số chưa đo ghi là **chưa có kết quả**. Không điền số giả định, không rút kết luận trước khi có dữ liệu thật. Phạm vi và tiêu chí hoàn thành: [PROJECT_PLAN.md](PROJECT_PLAN.md).
 
@@ -26,7 +26,7 @@ Dữ liệu nhỏ (vài video, vài trăm lượt xe) nên RQ1 là **đánh giá
 
 ## 3. Ground truth (đếm thủ công)
 
-1. Xem video chậm; mỗi xe vượt vạch ghi một dòng vào `gt_events.csv`: `video_id, frame, time_s, class, direction`.
+1. Xem video chậm; mỗi xe vượt vạch ghi một dòng vào `gt_events.csv`: `video_id, frame, time_s, class`. Xe vượt từ phía nào sang phía nào đều ghi một dòng như nhau; không ghi hướng.
 2. Dùng đúng định nghĩa "vượt vạch" như hệ thống (đoạn di chuyển cắt đoạn vạch; điểm tham chiếu giữa cạnh dưới).
 3. Mỗi video đếm **hai lần độc lập**, cách nhau ≥ 1 ngày nếu có thể; xem lại từng khung ở chỗ khác nhau rồi chốt. Ghi số khác biệt giữa hai lần như thước đo độ tin cậy của ground truth.
 4. Ghi các trường hợp mơ hồ (che khuất, xe dừng sát vạch) và quyết định.
@@ -36,7 +36,7 @@ Dữ liệu nhỏ (vài video, vài trăm lượt xe) nên RQ1 là **đánh giá
 
 ### 4.1. Đếm (chính)
 
-Với video `v`: `G_v` là tổng ground truth, `P_v` là tổng hệ thống đếm (chính là `grand_total`); sai số có dấu `e = P - G` (dương = thừa, âm = thiếu). **Đơn vị đánh giá chính: tổng theo video**; đơn vị phụ: `(video, lớp)`, `(video, hướng)`.
+Với video `v`: `G_v` là tổng ground truth, `P_v` là tổng hệ thống đếm (chính là `grand_total`); sai số có dấu `e = P - G` (dương = thừa, âm = thiếu). **Đơn vị đánh giá chính: tổng theo video**; đơn vị phụ: `(video, lớp)`.
 
 | Metric | Công thức | Ghi chú |
 | --- | --- | --- |
@@ -47,7 +47,7 @@ Với video `v`: `G_v` là tổng ground truth, `P_v` là tổng hệ thống đ
 
 Luôn báo `(G, P, e)` của **từng** video trước khi báo giá trị tổng hợp; với vài video chỉ nêu min–max, không báo độ lệch chuẩn hay khoảng tin cậy. Với đơn vị `(video, lớp)` hay có `G` nhỏ hoặc 0: dùng sai số tuyệt đối thay vì phần trăm.
 
-**Mức sự kiện (ghép một-một)** vì số tổng đúng có thể do lỗi thừa và thiếu triệt tiêu nhau. Trong mỗi nhóm (lớp, hướng) của một video: sắp sự kiện hệ thống và GT theo `frame`, ghép tham lam theo thời gian hai con trỏ, chỉ ghép khi `abs(frame_hệ_thống - frame_GT) <= Δ` (mặc định `Δ` = số khung của 1 giây, chọn trên video dev); mỗi sự kiện ở tối đa một cặp. `TP` = số cặp, `FP` = sự kiện hệ thống chưa ghép, `FN` = sự kiện GT chưa ghép; precision/recall/F1 ("n/a" nếu mẫu số 0). Báo cả **class-aware** (đúng lớp và hướng) lẫn **class-agnostic** (chỉ hướng) để thấy phần lỗi do phân loại. Bất biến: `TP + FP = P` và `TP + FN = G` cho mỗi nhóm. Tính chất tối ưu của ghép tham lam trên trục thời gian phải được kiểm tra bằng test khi cài đặt; không cần `scipy`.
+**Mức sự kiện (ghép một-một)** vì số tổng đúng có thể do lỗi thừa và thiếu triệt tiêu nhau. Trong mỗi nhóm của một video (nhóm = một lớp xe; ở chế độ class-agnostic, cả video là một nhóm): sắp sự kiện hệ thống và GT theo `frame`, ghép tham lam theo thời gian hai con trỏ, chỉ ghép khi `abs(frame_hệ_thống - frame_GT) <= Δ` (mặc định `Δ` = số khung của 1 giây, chọn trên video dev); mỗi sự kiện ở tối đa một cặp. `TP` = số cặp, `FP` = sự kiện hệ thống chưa ghép, `FN` = sự kiện GT chưa ghép; precision/recall/F1 ("n/a" nếu mẫu số 0). Báo cả **class-aware** (chỉ ghép sự kiện cùng lớp) lẫn **class-agnostic** (bỏ qua lớp, chỉ xét thời điểm vượt vạch) để thấy phần lỗi do phân loại. Bất biến: `TP + FP = P` và `TP + FN = G` cho mỗi nhóm. Tính chất tối ưu của ghép tham lam trên trục thời gian phải được kiểm tra bằng test khi cài đặt; không cần `scipy`.
 
 ### 4.2. Detection và tracking (mức tối thiểu)
 
@@ -67,6 +67,8 @@ Luôn báo `(G, P, e)` của **từng** video trước khi báo giá trị tổn
 - Ngưỡng FPS trong PROJECT_PLAN chỉ là mục tiêu tham chiếu, chưa đo.
 
 ## 6. Thí nghiệm so sánh (phù hợp GPU 4 GB)
+
+Mục đích: **phân tích độ nhạy cấu hình của chính hệ thống** để viết chương đánh giá của Report (ví dụ ngưỡng `conf` ảnh hưởng đến đếm thiếu/thừa thế nào). Đây không phải benchmark nhiều mô hình hay so sánh giải thuật, và không mở rộng thêm mô hình ngoài danh sách dưới đây.
 
 **Baseline:** `yolo26n.pt`; lớp COCO 2, 3, 5, 7; `conf=0.35`; `tracker="bytetrack.yaml"` truyền tường minh (tham số lấy từ `bytetrack.yaml` đi kèm Ultralytics 8.4.182, không ghi đè nếu chưa có lý do); `imgsz` mặc định (640); điểm tham chiếu giữa cạnh dưới; GPU CUDA. Chạy baseline trên toàn tập test trước khi đổi bất kỳ biến nào.
 
@@ -112,6 +114,9 @@ Không ghi chung chung "tracker mặc định". Bảng kết quả (mẫu, để
 - **ByteTrack:** Y. Zhang, P. Sun, Y. Jiang, D. Yu, F. Weng, Z. Yuan, P. Luo, W. Liu, X. Wang, "ByteTrack: Multi-Object Tracking by Associating Every Detection Box", arXiv:2110.06864, https://arxiv.org/abs/2110.06864 (gửi 13/10/2021, v3 sửa 7/4/2022). Trang arXiv không ghi hội nghị; "ECCV 2022" lấy từ README của tác giả (https://github.com/ifzhang/ByteTrack), **chưa đối chiếu** ECVA/Springer.
 - **Microsoft COCO:** T.-Y. Lin, M. Maire, S. Belongie, L. Bourdev, R. Girshick, J. Hays, P. Perona, D. Ramanan, C. L. Zitnick, P. Dollár, "Microsoft COCO: Common Objects in Context", arXiv:1405.0312, https://arxiv.org/abs/1405.0312 (gửi 1/5/2014, v3 sửa 21/2/2015). Trang arXiv không ghi hội nghị; việc đăng ở ECCV 2014 **chưa xác minh** (trang Springer chuyển hướng đăng nhập).
 - PyPI, `lap`: https://pypi.org/project/lap/ (0.5.13, BSD-2-Clause, có wheel `cp314 win_amd64`).
+- **Dự án tham khảo (chỉ đọc ý tưởng, không dùng mã hay video):** https://github.com/codewithaarohi/Vehicle-detection-and-tracking-classwise-using-YOLO11 (một notebook `sol.ipynb` và `test_videos/`, đã đọc ngày 2026-10-24) và video https://www.youtube.com/watch?v=o8S28sLOUU8 (chỉ đọc được tiêu đề và mô tả, chưa xem nội dung). Repo **không có tệp `LICENSE`** và không ghi nguồn video, nên không chép mã, không dùng video làm dữ liệu dev/test, không đưa vào repo.
+
+**Dự kiến trích, chưa đối chiếu nguồn** (phục vụ yêu cầu "ít nhất 3 công trình liên quan", PROJECT_PLAN §8): bài YOLO gốc của Redmon và cộng sự (2016) và SORT của Bewley và cộng sự (2016). Chỉ đưa vào báo cáo sau khi đã mở trang chính thức (arXiv/hội nghị) và ghi lại như các mục ở trên.
 
 **Chưa xác minh:** giấy phép/điều khoản của COCO, torchvision và mọi dataset/video ứng viên ở §2; bộ dữ liệu cụ thể sẽ dùng chưa chọn. Giấy phép các thành phần phần mềm: xem README.
 
