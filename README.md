@@ -4,7 +4,7 @@ Chương trình **phát hiện, theo dõi và đếm phương tiện giao thông
 
 ## Mục tiêu
 
-Với một video giao thông từ camera cố định, chương trình cần:
+Với một video giao thông ghi sẵn (MP4) quay từ camera cố định, chương trình cần:
 
 1. Phát hiện và phân loại xe: ô tô (`car`), xe máy (`motorcycle`), xe buýt (`bus`), xe tải (`truck`).
 2. Gán ID cho từng xe qua các khung hình (tracking).
@@ -72,7 +72,7 @@ Script tải ảnh mẫu từ Internet, chạy YOLO26n với các lớp COCO 2, 
 
 ## Dữ liệu vào, kết quả ra (thiết kế, chưa triển khai)
 
-- **Vào:** một video `.mp4` từ camera cố định; tọa độ hai đầu của vạch đếm; tên mô hình; ngưỡng `conf`; tên tracker.
+- **Vào:** một video giao thông `.mp4` ghi sẵn, từ camera cố định, lấy từ bộ dữ liệu công khai hoặc nguồn có giấy phép kiểm chứng được (không hỗ trợ webcam, camera thời gian thực, RTSP hay livestream); tọa độ hai đầu của vạch đếm; tên mô hình; ngưỡng `conf`; tên tracker. Tiêu chí chọn video, cách tách video dev/evaluation và cách ghi nguồn: [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) §2.
 - **Ra** (trong `outputs/`): video đã chú thích (khung bao, ID, vạch, bộ đếm), `tracks.csv` (mọi track theo khung hình), `events.csv` (mỗi lượt vượt vạch), `counts.json` (tổng hợp và thông tin lần chạy).
 
 Video, dữ liệu, trọng số và kết quả sinh ra **không** đưa lên Git (`.gitignore`).

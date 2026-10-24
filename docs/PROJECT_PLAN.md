@@ -1,14 +1,14 @@
 # PROJECT_PLAN — Kế hoạch dự án VehicleVision
 
-Cập nhật: 2026-10-24 (bỏ phân loại và thống kê hướng di chuyển khỏi phạm vi bắt buộc; thêm lưu ý triển khai). Đây là **kế hoạch**: ngoài `test_yolo.py` chưa có mã nào của hệ thống. Dữ liệu, metrics và thí nghiệm nằm ở [EXPERIMENTS.md](EXPERIMENTS.md). Yêu cầu của môn học ở §8, trạng thái hiện tại ở §9, các quyết định đã duyệt ở §10.
+Cập nhật: 2026-10-24 (bỏ phân loại và thống kê hướng di chuyển khỏi phạm vi bắt buộc; thêm lưu ý triển khai; dữ liệu đầu vào là video giao thông ghi sẵn). Đây là **kế hoạch**: ngoài `test_yolo.py` chưa có mã nào của hệ thống. Dữ liệu, metrics và thí nghiệm nằm ở [EXPERIMENTS.md](EXPERIMENTS.md). Yêu cầu của môn học ở §8, trạng thái hiện tại ở §9, các quyết định đã duyệt ở §10.
 
 ## 1. Mục tiêu và phạm vi
 
 Xây dựng và đánh giá một chương trình dùng YOLO để phát hiện, theo dõi và đếm phương tiện trong video, chạy trên máy cá nhân (Windows 11, RTX 3050 Ti 4 GB), có đủ thông tin để tái lập kết quả.
 
-- **Trong phạm vi:** một video từ một camera cố định, **một đoạn vạch đếm** xác định được vị trí; bốn lớp xe; xuất video và thống kê; đánh giá đếm và tốc độ trên video có ground truth.
+- **Trong phạm vi:** **video giao thông ghi sẵn** (MP4, từ bộ dữ liệu công khai hoặc nguồn có giấy phép kiểm chứng được; tiêu chí chọn và cách tách video dev/evaluation ở EXPERIMENTS §2) quay từ một camera cố định, **một đoạn vạch đếm** xác định được vị trí; bốn lớp xe; xuất video và thống kê; đánh giá đếm và tốc độ trên video có ground truth.
 - **Tùy chọn (chỉ làm khi phần bắt buộc xong và chủ dự án yêu cầu):** giao diện (Streamlit, cần cài thêm thư viện, phải xin phép), biểu đồ, fine-tune, tối ưu suy luận.
-- **Ngoài phạm vi:** nhận dạng biển số, đo tốc độ xe, phát hiện vi phạm, phân loại và thống kê theo hướng di chuyển, nhiều vạch, camera chuyển động, camera trực tiếp, huấn luyện từ đầu, triển khai server, benchmark nhiều mô hình/giải thuật. Đây là **một sản phẩm hoàn chỉnh được kiểm thử và đánh giá**, không phải đề tài so sánh mức độ tối ưu của nhiều giải thuật.
+- **Ngoài phạm vi:** nhận dạng biển số, đo tốc độ xe, phát hiện vi phạm, phân loại và thống kê theo hướng di chuyển, nhiều vạch, camera chuyển động, webcam/camera thời gian thực/RTSP/livestream, tự quay video, huấn luyện từ đầu, triển khai server, benchmark nhiều mô hình/giải thuật. Đây là **một sản phẩm hoàn chỉnh được kiểm thử và đánh giá**, không phải đề tài so sánh mức độ tối ưu của nhiều giải thuật.
 
 ### Thành phẩm cuối cùng
 
@@ -119,7 +119,7 @@ Thứ tự: Detection → Tracking → Counting → Outputs → Testing & Evalua
 
 | Tuần | Việc chính | Mốc nội bộ (trên video dev) |
 | --- | --- | --- |
-| 1 | Quay/chọn video dev và toàn bộ video test, ghi nguồn + giấy phép; chốt vạch từng video; chốt giao thức ground truth; quyết định về `lap`. | Có video dev; danh sách video test hợp lệ về giấy phép. |
+| 1 | Chọn video ghi sẵn cho nhóm dev và nhóm evaluation theo tiêu chí EXPERIMENTS §2, ghi nguồn + giấy phép vào danh mục video; chốt vạch từng video; chốt giao thức ground truth; quyết định về `lap`. | Có video dev; danh sách video test hợp lệ về giấy phép. |
 | 2 | `main.py`: detection trên video MP4, xuất video có khung bao. Đếm ground truth lần 1 (video dev, một video test). | Chạy hết video dev, đủ số khung. |
 | 3 | Tracking với `bytetrack.yaml`, hiển thị ID, ghi `tracks.csv`. Ground truth lần 1 cho các video test còn lại. | Có video với ID và `tracks.csv`. |
 | 4 | `counter.py` + `tests/test_counter.py`; xuất `events.csv`/`counts.json`. Ground truth lần 2 (cách lần 1 ≥ 1 ngày). | Test chạy được; end-to-end ra đủ 3 đầu ra. |
@@ -133,7 +133,7 @@ Thứ tự: Detection → Tracking → Counting → Outputs → Testing & Evalua
 
 **Blocker thường gặp:**
 - `lap` không cài/chạy được: chẩn đoán trước trong một môi trường ảo tạm ngoài `.venv`, xin phép chủ dự án trước khi cài; nếu vẫn không được, hỏi chủ dự án về môi trường Python khác; phương án cuối là tracker IoU đơn giản tự viết (ghi rõ là phần tự làm). Không tự thay `lap` bằng `scipy` khi chưa kiểm chứng tương thích. Chưa kiểm tra `tracktrack` có cần `lap` hay không.
-- Thiếu video test hợp lệ: dùng video tự quay (ngắn hơn cũng được, giữ tổng ≥ 100 lượt).
+- Thiếu video evaluation có giấy phép rõ: tìm nguồn công khai khác hoặc dùng các đoạn ngắn hơn từ video đã hợp lệ (giữ tổng ≥ 100 lượt, không trùng với video dev); không dùng video chưa rõ quyền sử dụng.
 - GPU 4 GB không đủ: xem EXPERIMENTS §6.
 - Tracker đổi ID nhiều: ghi nhận và đo, không coi là lỗi dự án.
 
@@ -184,3 +184,4 @@ Nguồn: `plan-SV.pdf` (kế hoạch môn Đồ án tổng hợp, lưu cục b�
 | 2026-10-20 | Repository nộp giảng viên không chứa tệp hướng dẫn riêng cho Claude Code: dùng `CLAUDE.local.md`, loại trừ qua `.git/info/exclude`. |
 | 2026-10-24 | **Thành phẩm cuối: một Report tổng kết (khung 7 chương ở §1) và một GitHub repository hoàn chỉnh.** VehicleVision là sản phẩm hoàn chỉnh được kiểm thử và đánh giá, không phải đề tài so sánh giải thuật. |
 | 2026-10-24 | Tiến độ quản lý theo mốc chức năng (Detection → Tracking → Counting → Outputs → Testing & Evaluation → Documentation & Report), không theo đợt slide/demo giữa kỳ, cuối kỳ. Các công trình liên quan chỉ là nội dung chương 3 của Report. Không tự mở rộng sang benchmark nhiều mô hình, fine-tuning, GUI. |
+| 2026-10-24 | **Dữ liệu đầu vào là video giao thông ghi sẵn** từ bộ dữ liệu công khai/nguồn có xuất xứ và giấy phép kiểm chứng được; không tự quay, không webcam/real-time/RTSP/livestream. Tách Development Videos và Evaluation Videos (có ground truth độc lập); video lớn lưu ngoài Git, ghi nguồn tải để tái lập. Mục tiêu, pipeline và tiêu chí nghiệm thu không đổi. |

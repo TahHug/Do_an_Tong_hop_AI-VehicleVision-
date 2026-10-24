@@ -1,6 +1,6 @@
 # EXPERIMENTS — Kế hoạch đánh giá thực nghiệm
 
-Cập nhật: 2026-10-24 (bỏ phân loại và thống kê hướng di chuyển khỏi phạm vi bắt buộc).
+Cập nhật: 2026-10-24 (bỏ phân loại và thống kê hướng di chuyển khỏi phạm vi bắt buộc; dữ liệu là video giao thông ghi sẵn, tách video dev và evaluation).
 
 > **Chưa có thí nghiệm nào được chạy và chưa có số liệu nào.** Tài liệu chỉ định nghĩa dữ liệu, cách đo và quy tắc ghi kết quả. Mọi chỉ số chưa đo ghi là **chưa có kết quả**. Không điền số giả định, không rút kết luận trước khi có dữ liệu thật. Phạm vi và tiêu chí hoàn thành: [PROJECT_PLAN.md](PROJECT_PLAN.md).
 
@@ -18,10 +18,25 @@ Dữ liệu nhỏ (vài video, vài trăm lượt xe) nên RQ1 là **đánh giá
 
 ## 2. Dữ liệu
 
-- **Nguồn ưu tiên: tự quay** từ vị trí cố định, an toàn, hợp pháp (kiểm soát được quyền sử dụng, ground truth đúng với vạch của mình). Tránh công khai video nhận dạng được người/biển số.
-- **Dataset công khai** (ví dụ UA-DETRAC, MIO-TCD, AI City Challenge, BDD100K) và **video stock miễn phí**: tên chỉ để tham khảo. **Giấy phép/điều khoản của từng nguồn chưa xác minh**; chỉ dùng sau khi đọc điều khoản và ghi nguồn, giấy phép, ngày tải vào mục §9.
-- **Phân chia:** 1 video **dev** (~1 phút) để chỉnh cấu hình và gỡ lỗi; **test** gồm ≥ 3 video (1–3 phút mỗi video, tổng ≥ 100 lượt vượt vạch), nên đa dạng: (V1) thưa, ban ngày; (V2) mật độ cao hoặc nhiều xe máy; (V3) điều kiện khó (ánh sáng yếu, bóng đổ, mưa) nếu có. Mọi tham số (`conf` chọn, `margin_px`, `max_gap_frames`, `Δ` ghép sự kiện) chỉnh trên video dev, **không chỉnh trên video test**.
-- Mỗi video ghi: nguồn, độ phân giải, FPS, thời lượng, điều kiện, tọa độ vạch. Tọa độ vạch chốt và lưu **trước** khi đếm ground truth.
+**Nguồn dữ liệu (quyết định 2026-10-24):** chỉ dùng **video giao thông ghi sẵn** (pre-recorded) lấy từ bộ dữ liệu công khai hoặc nguồn đáng tin cậy có xuất xứ và điều kiện sử dụng kiểm chứng được. Dự án **không tự quay video** và không hỗ trợ webcam, camera thời gian thực, RTSP hay livestream.
+
+**Tiêu chí chọn video:**
+- MP4 (hoặc chuyển sang MP4 được mà không mất thông tin quan trọng); camera cố định, góc quan sát ổn định, ít rung, không chuyển cảnh.
+- Đường thực tế, xe di chuyển rõ ràng, đủ sáng; xác định được một đoạn vạch đếm phù hợp.
+- Có các lớp trong phạm vi: car, motorcycle, bus, truck.
+- **Video gốc chưa bị vẽ** khung bao, ID hay kết quả nhận diện lên hình.
+- Nguồn và giấy phép kiểm chứng được. Không mặc định video trên Internet được phép tải, dùng hay phân phối lại; đọc điều khoản trước khi tải.
+- Giai đoạn đầu ưu tiên video ngắn, điều kiện đơn giản; sau đó thêm video độ khó vừa phải để đánh giá. Không yêu cầu xử lý điều kiện cực đoan (rung mạnh, trời tối, mưa lớn, ùn tắc quá phức tạp); nếu có video như vậy thì chỉ ghi nhận như giới hạn.
+
+**Nguồn ứng viên** (tên chỉ để tham khảo, **giấy phép/điều khoản từng nguồn chưa xác minh**): dataset công khai như UA-DETRAC, MIO-TCD, AI City Challenge, BDD100K; kho video stock có điều khoản rõ. Chỉ dùng sau khi đọc điều khoản và ghi nguồn, giấy phép, ngày tải vào §9.
+
+**Hai nhóm video, tách biệt hoàn toàn:**
+- **Development Videos** (gọi tắt: video dev): xây dựng, chạy thử, tìm lỗi và chỉnh hệ thống. Bắt đầu với ≥ 1 video ngắn (~1 phút hoặc ngắn hơn khi thử nhanh). Mọi tham số (`conf` chọn, `margin_px`, `max_gap_frames`, `Δ` ghép sự kiện) chỉ được chỉnh trên nhóm này.
+- **Evaluation Videos** (gọi tắt: video test, tập test): chỉ dùng để đánh giá sau khi hệ thống đã triển khai, có ground truth độc lập. ≥ 3 video (1–3 phút mỗi video, tổng ≥ 100 lượt vượt vạch), độ khó đơn giản đến vừa phải, ví dụ: (V1) thưa, ban ngày; (V2) mật độ cao hơn hoặc nhiều xe máy; (V3) điều kiện khó vừa phải (bóng đổ, ánh sáng kém hơn) nếu có. Không dùng để chỉnh tham số. Một video không được nằm ở cả hai nhóm (đoạn cắt từ cùng một video gốc cũng nên ở cùng một nhóm).
+
+**Lưu trữ và tái lập:**
+- Video lưu cục bộ ngoài Git (ví dụ `data/videos/`, đã nằm trong `.gitignore`). Mỗi video có một dòng mô tả trong một tệp danh mục nhỏ được commit (ví dụ `data/videos.csv`): tên tệp, nhóm (dev/evaluation), nguồn/URL, giấy phép, ngày tải, độ phân giải, FPS, thời lượng, đoạn cắt (nếu cắt), điều kiện, tọa độ vạch. Người khác tải lại từ nguồn được ghi để tái lập.
+- Tọa độ vạch chốt và lưu **trước** khi đếm ground truth.
 - Video, dataset, trọng số không đưa lên Git.
 
 ## 3. Ground truth (đếm thủ công)
@@ -99,6 +114,7 @@ Không ghi chung chung "tracker mặc định". Bảng kết quả (mẫu, để
 ## 8. Giới hạn và rủi ro ảnh hưởng đến kết luận
 
 - Tập test nhỏ: kết luận chỉ mang tính chỉ báo.
+- Video ghi sẵn từ nguồn bên ngoài: không kiểm soát được góc camera, độ phân giải, nén và điều kiện ghi hình; kết quả chỉ đúng cho các video đã chọn.
 - Chỉnh tham số trên chính video test làm sai lệch kết quả: tránh bằng video dev riêng.
 - Ground truth do một người tạo, có thể sai/thiên lệch: giảm bằng đếm hai lần.
 - Mô hình pretrained COCO không được huấn luyện cho góc nhìn/loại xe cụ thể (đặc biệt xe máy dày đặc, che khuất, ban đêm): không khái quát cho mọi camera.
@@ -120,4 +136,4 @@ Không ghi chung chung "tracker mặc định". Bảng kết quả (mẫu, để
 
 **Chưa xác minh:** giấy phép/điều khoản của COCO, torchvision và mọi dataset/video ứng viên ở §2; bộ dữ liệu cụ thể sẽ dùng chưa chọn. Giấy phép các thành phần phần mềm: xem README.
 
-**Dữ liệu thử nghiệm đã có:** chưa có video test hay ground truth nào.
+**Dữ liệu thử nghiệm đã có:** chưa chọn hay tải video nào (dev hoặc evaluation), chưa có ground truth.
