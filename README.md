@@ -16,13 +16,13 @@ Với một video giao thông ghi sẵn (MP4) quay từ camera cố định, ch�
 
 Python 3.14, PyTorch (CUDA), Ultralytics YOLO26 (mô hình `yolo26n` pretrained), ByteTrack (có sẵn trong Ultralytics), OpenCV, NumPy.
 
-## Trạng thái (cập nhật 2026-10-20)
+## Trạng thái (cập nhật 2026-10-24)
 
 | Chức năng | Trạng thái |
 | --- | --- |
 | Môi trường Python, PyTorch CUDA, Ultralytics, OpenCV | Đã cài và dùng được |
 | Phát hiện xe trên **ảnh** (`test_yolo.py`) | Đã chạy thành công (theo chủ dự án; ảnh kết quả trong `runs/`) |
-| Phát hiện xe trên **video** | **Chưa làm** |
+| Phát hiện xe trên **video** (`main.py`) | **Đã viết mã, chưa chạy thử với mô hình** (chờ nghiệm thu) |
 | Tracking | **Chưa làm** |
 | Đếm qua vạch ảo | **Chưa làm** |
 | Xuất video, CSV/JSON | **Chưa làm** |
@@ -68,7 +68,15 @@ Script tải ảnh mẫu từ Internet, chạy YOLO26n với các lớp COCO 2, 
 
 ## Chạy chương trình video
 
-**Chưa có.** Chương trình xử lý video (`main.py`) chưa được viết nên chưa có lệnh để chạy. Khi hoàn thành, lệnh sẽ được ghi vào đây.
+`main.py` phát hiện car/motorcycle/bus/truck trên một video MP4 và ghi video có khung bao vào `outputs/` (chưa có tracking hay đếm). **Mã đã viết nhưng chưa được chạy thử với mô hình**; lệnh dưới đây là cách chạy dự kiến:
+
+```powershell
+.\.venv\Scripts\python.exe main.py --video data\videos\dev\day.mp4
+```
+
+Tham số: `--video` (bắt buộc), `--model` (mặc định `yolo26n.pt`), `--conf` (mặc định `0.35`), `--output` (mặc định `outputs\<tên video>_detect.mp4`). Chương trình in thiết bị (CUDA/CPU), số khung đọc/ghi, thời gian và FPS xử lý sơ bộ, rồi mở lại video đầu ra để kiểm tra đọc được đủ số khung. FPS này chỉ để quan sát, không thay cho quy trình đo trong [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) §5.
+
+Video dev mẫu `data\videos\dev\day.mp4` lấy từ Highway Vehicle Surveillance Dataset (CC BY 4.0, xem bảng nguồn bên dưới); thư mục `data\videos\` không đưa lên Git.
 
 ## Dữ liệu vào, kết quả ra (thiết kế, chưa triển khai)
 

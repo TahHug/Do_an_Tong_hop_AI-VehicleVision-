@@ -166,7 +166,7 @@ Nguồn: `plan-SV.pdf` (kế hoạch môn Đồ án tổng hợp, lưu cục b�
 | Môi trường: Python 3.14.0, PyTorch 2.13.0+cu132, torchvision 0.28.0+cu132, Ultralytics 8.4.182, opencv-python 5.0.0.93, NumPy 2.5.2 | Đã kiểm chứng | `pip list`, `pip check` không lỗi; `torch.cuda.is_available()` = True trên RTX 3050 Ti (2026-10-23) |
 | YOLO26n trên ảnh mẫu (`test_yolo.py`) | Đã chạy | Ảnh kết quả trong `runs/` (cục bộ) |
 | Tài liệu: README, PROJECT_PLAN, EXPERIMENTS, requirements | Đã commit | `f4f537b` trên `main` |
-| Detection trên video (`main.py`) | Chưa làm; là nhiệm vụ tiếp theo | — |
+| Detection trên video (`main.py`) | Đã viết mã (Coding Task 01), chưa chạy thử với mô hình | Kiểm tra cú pháp, tham số, các nhánh lỗi, ghi/đọc MP4 bằng `mp4v` (2026-10-24) |
 | Tracking (ByteTrack), đếm, xuất CSV/JSON, unit test, đánh giá | Chưa làm | — |
 | Video dev/test, ground truth | Chưa có | — |
 | `lap`, `pytest`, `scipy` | Chưa cài | `pip list` |
