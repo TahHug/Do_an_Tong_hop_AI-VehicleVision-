@@ -1,6 +1,6 @@
 # VehicleVision
 
-Chương trình **phát hiện, theo dõi và đếm phương tiện giao thông trong video** bằng YOLO (Ultralytics) và OpenCV. Đồ án tổng hợp cá nhân (môn Computer Vision / AI, 5–7 tuần).
+Chương trình **phát hiện, theo dõi và đếm phương tiện giao thông trong video** bằng YOLO (Ultralytics) và OpenCV. Đồ án tổng hợp - AI.
 
 ## Mục tiêu
 
