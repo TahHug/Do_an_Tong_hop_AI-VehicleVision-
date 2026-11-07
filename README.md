@@ -49,18 +49,19 @@ VehicleVision/
 │   ├── DESIGN.md      # kiến trúc, quyết định kỹ thuật, thuật toán đếm
 │   └── EVALUATION.md  # dữ liệu, chỉ số, thí nghiệm, kết quả
 ├── data/
-│   ├── samples/       # video mẫu để chạy thử
-│   ├── videos.csv     # danh mục video: nguồn, giấy phép, đường dẫn tải, vạch đếm
 │   ├── ground_truth/  # số lượt đếm thủ công
-│   └── videos/        # video đánh giá (tải theo videos.csv, không lưu trong repository)
+│   └── videos/        # video đầu vào (không lưu trong repository)
+│       ├── dev/       # video phát triển
+│       └── eval/      # video đánh giá
 └── results/
-    ├── demo/          # video kết quả của video mẫu
+    ├── demo/          # video kết quả minh họa
+    ├── figures/       # ảnh chụp minh họa và biểu đồ số liệu
     ├── baseline/      # kết quả cấu hình chuẩn trên các video đánh giá
     ├── experiments/   # kết quả các thí nghiệm
     └── metrics.csv    # bảng tổng hợp chỉ số
 ```
 
-Kết quả của mỗi lần chạy được ghi vào `outputs/` (không lưu trong repository). Các kết quả dùng trong đánh giá được lưu trong `results/`.
+Repository không chứa video đầu vào; video được tải từ nguồn công khai (xem mục Dữ liệu) và xử lý trên máy cục bộ. Kết quả của mỗi lần chạy được ghi vào `outputs/` (không lưu trong repository). Các kết quả dùng trong đánh giá và trình bày được lưu trong `results/`.
 
 ## Cài đặt
 
@@ -75,8 +76,10 @@ PyTorch bản CUDA được cài trước các thư viện còn lại. Trọng s
 ## Sử dụng
 
 ```powershell
-.\.venv\Scripts\python.exe main.py --video data\samples\day.mp4
+.\.venv\Scripts\python.exe main.py --video data\videos\dev\day.mp4
 ```
+
+Thay đường dẫn trong `--video` bằng bất kỳ video nào trong `data/videos/`.
 
 | Tham số | Ý nghĩa | Mặc định |
 | --- | --- | --- |
@@ -91,11 +94,11 @@ Chương trình ghi video kết quả có khung bao, tên lớp và confidence, 
 
 ## Dữ liệu
 
-Video đầu vào là video giao thông ghi sẵn, camera cố định, lấy từ bộ dữ liệu công khai. Video mẫu `data/samples/day.mp4` thuộc **Highway Vehicle Surveillance Dataset** (H. Sadoghi Yazdi, Mendeley Data, 2025, DOI [10.17632/zdgmdg7p25.1](https://data.mendeley.com/datasets/zdgmdg7p25/1), giấy phép CC BY 4.0). Các video đánh giá được liệt kê trong `data/videos.csv` kèm nguồn tải và giấy phép; sau khi tải về `data/videos/`, chúng được xử lý bằng cùng lệnh `main.py`. Tiêu chí chọn dữ liệu: [docs/EVALUATION.md](docs/EVALUATION.md).
+Video đầu vào là video giao thông ghi sẵn, camera cố định, lấy từ các bộ dữ liệu công khai có giấy phép rõ ràng, và không được lưu trong repository. Video được chia thành hai nhóm: video phát triển (`data/videos/dev/`) dùng để xây dựng và chọn tham số, video đánh giá (`data/videos/eval/`) chỉ dùng để đánh giá. Mọi video đều được xử lý bằng cùng lệnh `main.py`. Tiêu chí chọn dữ liệu, danh sách video đã sử dụng, nguồn và giấy phép của từng bộ dữ liệu: [docs/EVALUATION.md](docs/EVALUATION.md).
 
 ## Kết quả
 
-Kết quả đánh giá được trình bày trong [docs/EVALUATION.md](docs/EVALUATION.md).
+Video kết quả minh họa nằm trong `results/demo/`, ảnh chụp minh họa và biểu đồ trong `results/figures/`, số liệu chi tiết trong `results/baseline/`, `results/experiments/` và `results/metrics.csv`. Phân tích kết quả được trình bày trong [docs/EVALUATION.md](docs/EVALUATION.md).
 
 ## Giấy phép và ghi nguồn
 

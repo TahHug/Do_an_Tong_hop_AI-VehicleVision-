@@ -28,8 +28,7 @@ bus.jpg
 *.mov
 *.mkv
 
-# Sample input video and demo output video are committed
-!data/samples/*.mp4
+# Demo output video is committed
 !results/demo/*.mp4
 
 # Datasets and generated results

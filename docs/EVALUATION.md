@@ -22,7 +22,7 @@ Tập đánh giá gồm một số ít video, nên kết quả mang tính mô t�
 - Điều kiện từ đơn giản đến vừa phải; điều kiện cực đoan (camera rung mạnh, trời tối, mưa lớn, ùn tắc phức tạp) nằm ngoài phạm vi đánh giá.
 
 **Tổ chức dữ liệu:**
-- **Video phát triển:** video ngắn, ít phương tiện, hình ảnh rõ; dùng để xây dựng, kiểm tra từng chức năng và chọn tham số (`conf`, `margin_px`, `max_gap_frames`, `Δ`).
+- **Video phát triển:** video ngắn, hình ảnh rõ; dùng để xây dựng, kiểm tra từng chức năng và chọn tham số (`conf`, `margin_px`, `max_gap_frames`, `Δ`).
 - **Video đánh giá:** ít nhất 3 video độc lập, mỗi video 1–3 phút, tổng ít nhất 100 lượt vượt vạch, nhiều phương tiện và đa dạng loại xe hơn video phát triển. Chỉ dùng để đánh giá, không dùng để chọn tham số.
 - Một video, kể cả các đoạn cắt từ cùng một video gốc, chỉ thuộc một nhóm.
 
@@ -30,11 +30,14 @@ Tập đánh giá gồm một số ít video, nên kết quả mang tính mô t�
 
 | Video | Nhóm | Nguồn | Thông số |
 | --- | --- | --- | --- |
-| `data/samples/day.mp4` | Phát triển (video mẫu) | Highway Vehicle Surveillance Dataset (điều kiện nắng) | 3840×2160, 30,17 FPS, 149 khung (4,9 s), camera cố định trên cao tốc |
+| `dev/day.mp4` | Phát triển | Highway Vehicle Surveillance Dataset (điều kiện nắng) | 3840×2160, 30,17 FPS, 149 khung (4,9 s), camera cố định trên cao tốc |
+| `dev/rain.mp4` | Phát triển | Highway Vehicle Surveillance Dataset (điều kiện mưa) | 704×432, 30,13 FPS, 194 khung (6,4 s), camera cố định trên cao tốc, mặt đường ướt |
 
-**Highway Vehicle Surveillance Dataset:** H. Sadoghi Yazdi, Ferdowsi University of Mashhad; Mendeley Data, phiên bản 1, 2025; DOI [10.17632/zdgmdg7p25.1](https://data.mendeley.com/datasets/zdgmdg7p25/1); giấy phép CC BY 4.0. Bộ dữ liệu gồm video ở điều kiện nắng, đêm, mưa cùng kết quả xử lý của tác giả (khung bao, ID); kết quả xử lý này không được dùng làm ground truth.
+**Nguồn dữ liệu:**
 
-**Lưu trữ:** video mẫu `data/samples/day.mp4` có trong repository để chạy thử. Video đánh giá được lưu trong `data/videos/` và không có trong repository; danh mục `data/videos.csv` ghi cho mỗi video: tên tệp, nhóm, nguồn và đường dẫn tải, giấy phép, độ phân giải, FPS, thời lượng, đoạn cắt (nếu có), điều kiện ghi hình và tọa độ vạch đếm.
+1. **Highway Vehicle Surveillance Dataset:** H. Sadoghi Yazdi, Ferdowsi University of Mashhad; Mendeley Data, phiên bản 1, 2025; DOI [10.17632/zdgmdg7p25.1](https://data.mendeley.com/datasets/zdgmdg7p25/1); giấy phép CC BY 4.0. Bộ dữ liệu gồm video ở điều kiện nắng, đêm, mưa cùng kết quả xử lý của tác giả (khung bao, ID); kết quả xử lý này không được dùng làm ground truth.
+
+**Lưu trữ:** video đầu vào không có trong repository và được xử lý trên máy cục bộ: video phát triển nằm trong `data/videos/dev/`, video đánh giá trong `data/videos/eval/`. Bảng "Dữ liệu sử dụng" ghi cho mỗi video: nhóm, nguồn, độ phân giải, FPS, thời lượng và điều kiện ghi hình; nếu video là đoạn cắt từ video gốc thì ghi thêm vị trí đoạn cắt. Tọa độ vạch đếm của mỗi lần chạy được lưu trong `counts.json` ([DESIGN.md](DESIGN.md)).
 
 ## 3. Ground truth
 
@@ -98,7 +101,7 @@ Tổng số đếm có thể đúng do lỗi thừa và lỗi thiếu bù trừ 
 
 Các thí nghiệm chính là E2 và một trong E1/E4; E3 và E5 là bổ sung. Với GPU 4 GB, E1 chạy với batch = 1; nếu `yolo26s` không đủ bộ nhớ, cả hai mô hình cùng chạy ở chế độ `half=True` để kích thước mô hình vẫn là biến duy nhất; nếu vẫn không khả thi, E4 được dùng thay cho E1.
 
-**Lưu kết quả:** mỗi lần chạy ghi vào `outputs/`. Kết quả dùng trong đánh giá được lưu trong `results/`: `baseline/<video>/` và `experiments/<mã thí nghiệm>/<video>/` chứa `counts.json`, `events.csv`; `metrics.csv` tổng hợp chỉ số của mọi lần chạy; `demo/` chứa video kết quả của video mẫu.
+**Lưu kết quả:** mỗi lần chạy ghi vào `outputs/`. Kết quả dùng trong đánh giá được lưu trong `results/`: `baseline/<video>/` và `experiments/<mã thí nghiệm>/<video>/` chứa `counts.json`, `events.csv`; `metrics.csv` tổng hợp chỉ số của mọi lần chạy; `demo/` chứa video kết quả minh họa; `figures/` chứa ảnh chụp minh họa và biểu đồ số liệu.
 
 **Ghi nhận mỗi lần chạy:** mã thí nghiệm, ngày, video, lệnh chạy, commit, phiên bản thư viện, tệp trọng số, tracker và tham số, tọa độ vạch và tham số đếm, điều kiện phần cứng.
 
