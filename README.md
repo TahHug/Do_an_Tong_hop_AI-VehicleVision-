@@ -19,7 +19,7 @@ VehicleVision nhận một video giao thông ghi sẵn từ camera cố định 
 ## Roadmap
 
 - [x] Phát hiện phương tiện trên ảnh
-- [ ] Phát hiện phương tiện trên video (đang hoàn thiện)
+- [x] Phát hiện phương tiện trên video
 - [ ] Theo dõi phương tiện (ByteTrack)
 - [ ] Đếm lượt vượt vạch
 - [ ] Xuất tệp thống kê CSV/JSON
@@ -111,6 +111,8 @@ Video kết quả minh họa nằm trong `results/demo/`, ảnh chụp minh họ
 | [lap](https://pypi.org/project/lap/) | BSD-2-Clause |
 | [ByteTrack](https://github.com/ifzhang/ByteTrack) (thuật toán; dùng bản cài đặt trong Ultralytics) | MIT |
 | [Highway Vehicle Surveillance Dataset](https://data.mendeley.com/datasets/zdgmdg7p25/1) | CC BY 4.0 |
+| [Moroccan Video Intelligent Transport System dataset (MoVITS)](https://data.mendeley.com/datasets/5jcg5vfx58/2) | CC BY 4.0 |
+| [Vehicles traffic recordings dataset on public road](https://data.mendeley.com/datasets/8k86t83wy5/1) | CC BY 4.0 |
 
 Dự án sử dụng Ultralytics theo giấy phép AGPL-3.0. Mô hình phát hiện và thuật toán theo dõi là thành phần tái sử dụng; thiết kế pipeline, logic đếm, phương pháp và kết quả đánh giá là phần do dự án thực hiện.
 

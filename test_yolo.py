@@ -16,9 +16,8 @@ results = model.predict(
     conf=0.35,
     device=device,
     save=True,
-    project="runs/detect",
     name="first_test"
 )
 
 print("Da hoan thanh nhan dien!")
-print("Thu muc ket qua: runs/detect/first_test")
+print("Thu muc ket qua:", results[0].save_dir)

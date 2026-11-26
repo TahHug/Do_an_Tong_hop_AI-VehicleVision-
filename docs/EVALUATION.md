@@ -32,10 +32,16 @@ Tập đánh giá gồm một số ít video, nên kết quả mang tính mô t�
 | --- | --- | --- | --- |
 | `dev/day.mp4` | Phát triển | Highway Vehicle Surveillance Dataset (điều kiện nắng) | 3840×2160, 30,17 FPS, 149 khung (4,9 s), camera cố định trên cao tốc |
 | `dev/rain.mp4` | Phát triển | Highway Vehicle Surveillance Dataset (điều kiện mưa) | 704×432, 30,13 FPS, 194 khung (6,4 s), camera cố định trên cao tốc, mặt đường ướt |
+| `dev/1.avi` | Phát triển | MoVITS (Videos 1, camera 1) | 2456×2054, 25 FPS, 5.589 khung (223,6 s), camera cố định trên cao nhìn xuống nút giao, xe đi nhiều hướng |
+| `eval/movits_3.avi` | Đánh giá | MoVITS (Videos 3, camera 1) | 2456×2054, 25 FPS, 2.182 khung (87,3 s), camera cố định trên cao, đường thẳng nhiều làn dẫn vào vòng xuyến |
+| `eval/movits_6.avi` | Đánh giá | MoVITS (Videos 6, camera 1) | 2456×2054, 25 FPS, 3.023 khung (120,9 s), camera cố định trên cao, đường thẳng hai chiều có vạch qua đường |
+| `eval/oran_back.mp4` | Đánh giá | Vehicles traffic recordings (BackVehcilesTraffic720p) | 1280×720, 25 FPS, 3.336 khung (133,4 s), camera cố định trên cầu vượt nhìn theo chiều xe chạy, đường nhiều làn có xe buýt |
 
 **Nguồn dữ liệu:**
 
 1. **Highway Vehicle Surveillance Dataset:** H. Sadoghi Yazdi, Ferdowsi University of Mashhad; Mendeley Data, phiên bản 1, 2025; DOI [10.17632/zdgmdg7p25.1](https://data.mendeley.com/datasets/zdgmdg7p25/1); giấy phép CC BY 4.0. Bộ dữ liệu gồm video ở điều kiện nắng, đêm, mưa cùng kết quả xử lý của tác giả (khung bao, ID); kết quả xử lý này không được dùng làm ground truth.
+2. **The Moroccan Video Intelligent Transport System dataset for vehicle detection (MoVITS):** H. Derrouz, H. Ait Abdelali; Mendeley Data, phiên bản 2, 2021; DOI [10.17632/5jcg5vfx58.2](https://data.mendeley.com/datasets/5jcg5vfx58/2); giấy phép CC BY 4.0. Bộ dữ liệu gồm video giao thông tại Maroc thu bằng hệ thống camera stereo, kèm nhãn khung bao phương tiện; nhãn này không được dùng làm ground truth đếm.
+3. **Vehicles traffic recordings dataset on public road:** M. A. Benallal, Université des Sciences et de la Technologie d'Oran Mohamed Boudiaf; Mendeley Data, phiên bản 1, 2021; DOI [10.17632/8k86t83wy5.1](https://data.mendeley.com/datasets/8k86t83wy5/1); giấy phép CC BY 4.0. Bộ dữ liệu gồm video giao thông trên một tuyến đường công cộng tại Oran (Algeria), độ phân giải 1080p và 720p, cùng các khung hình trích xuất.
 
 **Lưu trữ:** video đầu vào không có trong repository và được xử lý trên máy cục bộ: video phát triển nằm trong `data/videos/dev/`, video đánh giá trong `data/videos/eval/`. Bảng "Dữ liệu sử dụng" ghi cho mỗi video: nhóm, nguồn, độ phân giải, FPS, thời lượng và điều kiện ghi hình; nếu video là đoạn cắt từ video gốc thì ghi thêm vị trí đoạn cắt. Tọa độ vạch đếm của mỗi lần chạy được lưu trong `counts.json` ([DESIGN.md](DESIGN.md)).
 
