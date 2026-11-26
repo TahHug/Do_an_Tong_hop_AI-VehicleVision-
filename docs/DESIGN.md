@@ -31,10 +31,27 @@ Với mỗi khung hình: ảnh → danh sách track (ID, khung bao, lớp, confi
 ## 3. Quyết định kỹ thuật
 
 **Mô hình phát hiện: YOLO26n pretrained trên COCO, `conf=0.35`.**
-COCO đã có đủ bốn lớp phương tiện cần dùng nên không cần huấn luyện lại. YOLO26n là cỡ nhỏ và nhanh nhất của họ YOLO26, phù hợp GPU 4 GB. Ngưỡng `conf=0.35` là giá trị khởi đầu và được phân tích thêm trong thí nghiệm E2.
+COCO đã có đủ bốn lớp phương tiện cần dùng nên không cần huấn luyện lại. YOLO26n là cỡ nhỏ và nhanh nhất của họ YOLO26, phù hợp GPU 4 GB. Ngưỡng `conf=0.35` là mức confidence để một phương tiện được cấp ID, là giá trị khởi đầu và được phân tích thêm trong thí nghiệm E2.
 
-**Tracker: ByteTrack (`tracker="bytetrack.yaml"`).**
-ByteTrack ghép cả các khung bao có độ tin cậy thấp vào các track đang có, giúp giữ ID khi phương tiện bị che khuất một phần. Thuật toán có sẵn trong Ultralytics. Tracker được chỉ định tường minh vì giá trị mặc định có thể khác giữa các phiên bản (Ultralytics 8.4.182 mặc định dùng `tracktrack.yaml`). Tham số sử dụng là tham số của `bytetrack.yaml`: `track_high_thresh`, `track_low_thresh`, `new_track_thresh`, `track_buffer`, `match_thresh`, `fuse_score`.
+**Tracker: ByteTrack (`bytetrack.yaml`).**
+ByteTrack ghép cả các khung bao có độ tin cậy thấp vào các track đang có, giúp giữ ID khi phương tiện bị che khuất một phần. Thuật toán có sẵn trong Ultralytics (cần thư viện `lap`). Tracker được chỉ định tường minh vì giá trị mặc định có thể khác giữa các phiên bản (Ultralytics 8.4.182 mặc định dùng `tracktrack.yaml`).
+
+Ở mỗi khung hình, ByteTrack dự đoán vị trí mới của các track bằng bộ lọc Kalman, rồi ghép track với khung bao theo hai bước:
+
+1. Khung bao có confidence từ `track_high_thresh` trở lên được ghép trước, theo độ chồng lấn IoU (có kết hợp confidence, `fuse_score`).
+2. Các track đang theo dõi mà chưa ghép được thử ghép tiếp, chỉ theo IoU, với khung bao có confidence từ trên `track_low_thresh` đến dưới `track_high_thresh`.
+
+Track mới chỉ được tạo từ khung bao chưa ghép có confidence từ `new_track_thresh` trở lên. Track không ghép được quá `track_buffer` khung bị loại bỏ.
+
+| Tham số | Giá trị | Nguồn |
+| --- | --- | --- |
+| `track_high_thresh`, `new_track_thresh` | bằng `--conf` (0,35) | đặt theo lần chạy |
+| `track_low_thresh` | 0,1 | `bytetrack.yaml` |
+| `track_buffer` | 30 | `bytetrack.yaml` |
+| `match_thresh` | 0,8 | `bytetrack.yaml` |
+| `fuse_score` | bật | `bytetrack.yaml` |
+
+Bộ phát hiện lọc khung bao ở mức `track_low_thresh`, còn `--conf` được ghi vào `track_high_thresh` và `new_track_thresh` trong tệp `tracker.yaml` của lần chạy. *Lý do:* nếu bộ phát hiện lọc ngay ở 0,35 thì tracker không nhận được khung bao điểm thấp nào và bước ghép thứ hai không bao giờ chạy. Vì vậy một track đã có ID có thể có `conf` dưới 0,35 ở một số khung hình.
 
 **Phát hiện và theo dõi trong một lời gọi `model.track(...)`.**
 Giảm lượng mã và đơn giản hóa kiểm tra. Đánh đổi: không đo tách riêng được thời gian của hai bước.
@@ -77,6 +94,7 @@ Dấu của tích có hướng cho biết `p` nằm ở phía nào của vạch.
 | Đổi ID trước hoặc sau vạch | Vẫn đếm đúng một lần |
 | Đổi ID đúng lúc vượt vạch | Có thể đếm thừa hoặc thiếu |
 | Hai phương tiện che nhau, chung một ID | Đếm thiếu |
+| Một phương tiện có hai khung bao khác lớp, hai ID | Có thể đếm thừa |
 | Lớp thay đổi giữa chừng | Tổng không đổi, có thể sai lớp |
 
 **Kiểm thử.** Logic đếm được kiểm thử bằng chuỗi tọa độ tổng hợp, không cần mô hình hay GPU. Các trường hợp: vượt theo cả hai chiều; không tới vạch; chạm vạch rồi quay lại; đi vòng qua đầu mút; dao động trong vùng đệm; vượt rồi quay lại; mất track ngắn và dài hơn `max_gap_frames`; đổi ID trước vạch; đổi lớp; nhiều phương tiện trong cùng khung; vạch suy biến; tính nhất quán của đầu ra. Trường hợp đổi ID đúng lúc vượt vạch được kiểm thử để ghi nhận hành vi thực tế như một giới hạn đã biết.
@@ -88,6 +106,8 @@ Dấu của tích có hướng cho biết `p` nằm ở phía nào của vạch.
 | `tracks.csv` | Mỗi dòng là một track trong một khung hình: `frame`, `time_s`, `track_id`, `class`, `conf`, `x1`, `y1`, `x2`, `y2`. |
 | `events.csv` | Mỗi dòng là một lượt vượt vạch: `frame`, `time_s`, `track_id`, `class`. |
 | `counts.json` | `grand_total`, `by_class` và cấu hình của lần chạy: video, mô hình, `conf`, tracker và tham số tracker, phiên bản thư viện, tọa độ vạch `a`, `b`, `margin_px`, `max_gap_frames`, thời gian xử lý. |
+
+Kết quả của mỗi lần chạy nằm trong `outputs/<tên video>/` (đổi bằng `--output-dir`), gồm video, các tệp trên và `tracker.yaml`. `frame` được đánh số từ 1 và `time_s = (frame − 1) / FPS`. Tọa độ khung bao tính theo pixel của video gốc. Khung hình không có track không có dòng nào trong `tracks.csv`, và video giữ nguyên khung hình gốc.
 
 Ràng buộc nhất quán: `grand_total` = số dòng dữ liệu của `events.csv` = tổng `by_class`. `counts.json` được tổng hợp từ chính danh sách sự kiện trong `events.csv`, và `tracks.csv` cho phép đối chiếu từng ID với video.
 

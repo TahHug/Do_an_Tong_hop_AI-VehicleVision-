@@ -20,7 +20,7 @@ VehicleVision nhận một video giao thông ghi sẵn từ camera cố định 
 
 - [x] Phát hiện phương tiện trên ảnh
 - [x] Phát hiện phương tiện trên video
-- [ ] Theo dõi phương tiện (ByteTrack)
+- [x] Theo dõi phương tiện (ByteTrack)
 - [ ] Đếm lượt vượt vạch
 - [ ] Xuất tệp thống kê CSV/JSON
 - [ ] Kiểm thử logic đếm
@@ -35,6 +35,7 @@ VehicleVision nhận một video giao thông ghi sẵn từ camera cố định 
 | Ultralytics (YOLO26, ByteTrack) | 8.4.182 |
 | OpenCV (`opencv-python`) | 5.0.0.93 |
 | NumPy | 2.5.2 |
+| lap (ghép cặp trong ByteTrack) | 0.5.14 |
 
 Môi trường phát triển: Windows 11, NVIDIA RTX 3050 Ti Laptop GPU (4 GB).
 
@@ -83,12 +84,20 @@ Thay đường dẫn trong `--video` bằng bất kỳ video nào trong `data/vi
 
 | Tham số | Ý nghĩa | Mặc định |
 | --- | --- | --- |
-| `--video` | Video đầu vào (MP4) | bắt buộc |
+| `--video` | Video đầu vào (MP4, AVI) | bắt buộc |
 | `--model` | Tệp trọng số YOLO | `yolo26n.pt` |
-| `--conf` | Ngưỡng confidence, trong khoảng (0, 1] | `0.35` |
-| `--output` | Video đầu ra (MP4) | `outputs\<tên video>_detect.mp4` |
+| `--conf` | Ngưỡng confidence để cấp ID mới, trong khoảng (0,1; 1] | `0.35` |
+| `--output-dir` | Thư mục kết quả | `outputs\<tên video>` |
 
-Chương trình ghi video kết quả có khung bao, tên lớp và confidence, giữ nguyên độ phân giải và FPS của video gốc, rồi đọc lại video đầu ra để xác nhận đủ số khung. Thông tin in ra gồm thiết bị xử lý (CUDA/CPU), số khung đọc và ghi, thời gian xử lý và FPS.
+Mỗi lần chạy ghi ba tệp vào thư mục kết quả (chạy lại cùng thư mục sẽ ghi đè):
+
+| Tệp | Nội dung |
+| --- | --- |
+| `tracked.mp4` | Video có khung bao, ID, tên lớp và confidence, giữ nguyên độ phân giải và FPS của video gốc |
+| `tracks.csv` | Mỗi dòng là một track trong một khung hình ([docs/DESIGN.md](docs/DESIGN.md), mục 5) |
+| `tracker.yaml` | Cấu hình ByteTrack của lần chạy |
+
+Chương trình đọc lại video đầu ra để xác nhận đủ số khung. Thông tin in ra gồm thiết bị xử lý (CUDA/CPU), số khung đọc và ghi, thời gian xử lý, FPS, số dòng track và số ID khác nhau. Số ID khác nhau không phải số xe đã đếm.
 
 `test_yolo.py` chạy mô hình trên một ảnh mẫu để kiểm tra nhanh môi trường.
 

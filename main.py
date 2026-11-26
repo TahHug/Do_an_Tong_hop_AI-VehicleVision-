@@ -1,20 +1,26 @@
-"""VehicleVision - Coding Task 01: phát hiện phương tiện trên video.
+"""VehicleVision: phát hiện và theo dõi phương tiện trên video.
 
-Đọc một video MP4, chạy YOLO26n (pretrained COCO) trên từng khung hình,
-chỉ giữ 4 lớp phương tiện, vẽ khung bao + nhãn rồi ghi ra video MP4 mới.
-Chưa có tracking hay đếm (các nhiệm vụ sau).
+Đọc một video, chạy YOLO26n (pretrained COCO) và ByteTrack trên từng khung hình,
+chỉ giữ 4 lớp phương tiện, vẽ khung bao kèm ID rồi ghi video MP4 mới và tracks.csv.
+Chưa có đếm lượt vượt vạch.
 
 Ví dụ (PowerShell, trong thư mục dự án):
     .\\.venv\\Scripts\\python.exe main.py --video data\\videos\\dev\\day.mp4
 """
 
 import argparse
+import csv
+import importlib.util
 import math
+import os
 import sys
 import time
 from pathlib import Path
 
 import cv2
+
+# Không để Ultralytics tự pip install thư viện còn thiếu (phải đặt trước khi import ultralytics).
+os.environ["YOLO_AUTOINSTALL"] = "False"
 
 # Chỉ số lớp trong bộ COCO mà YOLO26n pretrained đã học: 2=car, 3=motorcycle, 5=bus, 7=truck.
 VEHICLE_CLASSES = {2: "car", 3: "motorcycle", 5: "bus", 7: "truck"}
@@ -22,18 +28,19 @@ VEHICLE_CLASSES = {2: "car", 3: "motorcycle", 5: "bus", 7: "truck"}
 DEFAULT_MODEL = "yolo26n.pt"
 DEFAULT_CONF = 0.35
 FALLBACK_FPS = 30.0  # dùng khi metadata FPS của video không hợp lệ
+CSV_COLUMNS = ["frame", "time_s", "track_id", "class", "conf", "x1", "y1", "x2", "y2"]
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Phát hiện car/motorcycle/bus/truck trên video bằng YOLO26n và ghi video chú thích."
+        description="Phát hiện và theo dõi car/motorcycle/bus/truck trên video bằng YOLO26n và ByteTrack."
     )
-    parser.add_argument("--video", required=True, help="đường dẫn video đầu vào (MP4)")
+    parser.add_argument("--video", required=True, help="đường dẫn video đầu vào")
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"tệp trọng số YOLO (mặc định: {DEFAULT_MODEL})")
     parser.add_argument("--conf", type=float, default=DEFAULT_CONF,
-                        help=f"ngưỡng confidence, trong khoảng (0, 1] (mặc định: {DEFAULT_CONF})")
-    parser.add_argument("--output", default=None,
-                        help="đường dẫn video đầu ra .mp4 (mặc định: outputs/<tên video>_detect.mp4)")
+                        help=f"ngưỡng confidence để cấp ID mới (mặc định: {DEFAULT_CONF})")
+    parser.add_argument("--output-dir", default=None,
+                        help="thư mục kết quả (mặc định: outputs/<tên video>)")
     return parser.parse_args()
 
 
@@ -56,19 +63,51 @@ def resolve_paths(args):
         # Không để Ultralytics tự tải trọng số từ Internet: báo lỗi rõ ràng.
         fail(f"Không tìm thấy tệp trọng số: {model_path}")
 
-    if args.output:
-        output_path = Path(args.output)
-    else:
-        output_path = Path("outputs") / f"{video_path.stem}_detect.mp4"
-    if output_path.suffix.lower() != ".mp4":
-        fail(f"Video đầu ra phải có đuôi .mp4: {output_path}")
+    if importlib.util.find_spec("lap") is None:
+        fail("Thiếu thư viện lap (ByteTrack cần lap). Cài theo mục Cài đặt trong README.md.")
+
+    output_dir = Path(args.output_dir) if args.output_dir else Path("outputs") / video_path.stem
 
     # Không bao giờ ghi đè video gốc.
-    if output_path.resolve() == video_path.resolve():
-        fail("Đường dẫn đầu ra trùng với video đầu vào; hãy chọn --output khác.")
+    if (output_dir / "tracked.mp4").resolve() == video_path.resolve():
+        fail("Video đầu ra trùng với video đầu vào; hãy chọn --output-dir khác.")
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    return video_path, model_path, output_path
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return video_path, model_path, output_dir
+
+
+def write_tracker_config(output_dir, conf):
+    """Tạo cấu hình ByteTrack cho lần chạy: bytetrack.yaml gốc, chỉ đổi ngưỡng cấp ID theo conf.
+
+    ByteTrack ghép hai bước: khung bao có điểm >= track_high_thresh được ghép trước, khung có điểm
+    từ track_low_thresh đến dưới track_high_thresh chỉ dùng để giữ tiếp ID đã có (ví dụ xe bị che).
+    Vì vậy bộ phát hiện phải trả về cả khung điểm thấp, tức là lọc ở track_low_thresh chứ không ở conf.
+    """
+    from ultralytics.utils import ROOT, YAML
+
+    config = YAML.load(ROOT / "cfg" / "trackers" / "bytetrack.yaml")
+    low_thresh = config["track_low_thresh"]
+    if conf <= low_thresh:
+        fail(f"--conf phải lớn hơn track_low_thresh của ByteTrack ({low_thresh}), nhận được {conf}")
+    config["track_high_thresh"] = conf
+    config["new_track_thresh"] = conf
+
+    tracker_path = output_dir / "tracker.yaml"
+    YAML.save(tracker_path, config)
+    return tracker_path, low_thresh
+
+
+def extract_tracks(result):
+    """Đổi kết quả một khung hình thành danh sách (track_id, tên lớp, conf, [x1, y1, x2, y2])."""
+    boxes = result.boxes
+    if boxes.id is None:  # khung không có track nào (các khung bao chưa có ID bị bỏ qua)
+        return []
+    return [
+        (int(track_id), VEHICLE_CLASSES[int(class_id)], conf, xyxy)
+        for track_id, class_id, conf, xyxy in zip(
+            boxes.id.tolist(), boxes.cls.tolist(), boxes.conf.tolist(), boxes.xyxy.tolist()
+        )
+    ]
 
 
 def read_video_info(capture):
@@ -119,13 +158,17 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8")  # tránh lỗi in tiếng Việt khi terminal không dùng UTF-8
 
     args = parse_args()
-    video_path, model_path, output_path = resolve_paths(args)
+    video_path, model_path, output_dir = resolve_paths(args)
+    tracker_path, low_thresh = write_tracker_config(output_dir, args.conf)
+    output_path = output_dir / "tracked.mp4"
+    csv_path = output_dir / "tracks.csv"
 
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         fail(f"OpenCV không mở được video: {video_path}")
 
     writer = None
+    csv_file = None
     try:
         fps, width, height, meta_frames, fps_note = read_video_info(capture)
 
@@ -150,15 +193,30 @@ def main():
         if not writer.isOpened():
             fail(f"Không mở được VideoWriter cho tệp: {output_path}")
 
+        csv_file = open(csv_path, "w", newline="", encoding="utf-8")
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(CSV_COLUMNS)
+
         frames_read = 0
         frames_written = 0
+        track_rows = 0
+        track_ids = set()
         start = time.perf_counter()
         while ok:
             frames_read += 1
-            # classes=...: YOLO chỉ trả về 4 lớp xe; conf=...: bỏ khung có độ tin cậy thấp hơn ngưỡng.
-            result = model.predict(frame, classes=class_ids, conf=args.conf, device=device, verbose=False)[0]
-            annotated = result.plot()  # vẽ khung bao, tên lớp và confidence lên bản sao khung hình
-            writer.write(annotated)
+            # persist=True: giữ trạng thái tracker giữa các khung. conf=low_thresh: ByteTrack cần cả khung
+            # điểm thấp; ngưỡng cấp ID mới (--conf) nằm trong tracker.yaml.
+            result = model.track(frame, persist=True, tracker=str(tracker_path), classes=class_ids,
+                                 conf=low_thresh, device=device, verbose=False)[0]
+            tracks = extract_tracks(result)
+            time_s = (frames_read - 1) / fps  # frame đánh số từ 1
+            for track_id, class_name, conf, xyxy in tracks:
+                csv_writer.writerow([frames_read, f"{time_s:.3f}", track_id, class_name, f"{conf:.4f}",
+                                     *(f"{value:.1f}" for value in xyxy)])
+                track_ids.add(track_id)
+            track_rows += len(tracks)
+            # plot() vẽ "id:<ID> <lớp> <conf>". Không có track thì giữ khung gốc, tránh vẽ khung bao không ID.
+            writer.write(result.plot() if tracks else frame)
             frames_written += 1
             if frames_read % 100 == 0:
                 print(f"  ... đã xử lý {frames_read} khung")
@@ -168,6 +226,8 @@ def main():
         capture.release()
         if writer is not None:
             writer.release()
+        if csv_file is not None:
+            csv_file.close()
 
     readable = count_readable_frames(output_path)
     processing_fps = frames_read / elapsed if elapsed > 0 else float("nan")
@@ -177,7 +237,11 @@ def main():
     print(f"  Số khung ghi  : {frames_written}")
     print(f"  Thời gian     : {elapsed:.2f} s")
     print(f"  FPS xử lý     : {processing_fps:.2f} (sơ bộ, không phải phép đo chuẩn trong docs/EVALUATION.md)")
+    print(f"  Số dòng track : {track_rows}")
+    print(f"  Số ID khác nhau: {len(track_ids)} (không phải số xe đã đếm)")
     print(f"  Video đầu ra  : {output_path.resolve()}")
+    print(f"  tracks.csv    : {csv_path.resolve()}")
+    print(f"  Cấu hình track: {tracker_path.resolve()}")
     print(f"  Kiểm tra lại  : đọc được {readable} khung từ video đầu ra")
 
     if readable != frames_written or frames_written != frames_read:
