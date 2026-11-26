@@ -205,9 +205,10 @@ def main():
         while ok:
             frames_read += 1
             # persist=True: giữ trạng thái tracker giữa các khung. conf=low_thresh: ByteTrack cần cả khung
-            # điểm thấp; ngưỡng cấp ID mới (--conf) nằm trong tracker.yaml.
+            # điểm thấp; ngưỡng cấp ID mới (--conf) nằm trong tracker.yaml. agnostic_nms=True: mỗi vị trí dự
+            # đoán chỉ giữ một lớp, tránh một xe có hai khung bao trùng nhau (vd. car và truck) thành hai ID.
             result = model.track(frame, persist=True, tracker=str(tracker_path), classes=class_ids,
-                                 conf=low_thresh, device=device, verbose=False)[0]
+                                 conf=low_thresh, agnostic_nms=True, device=device, verbose=False)[0]
             tracks = extract_tracks(result)
             time_s = (frames_read - 1) / fps  # frame đánh số từ 1
             for track_id, class_name, conf, xyxy in tracks:

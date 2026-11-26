@@ -89,7 +89,7 @@ Tổng số đếm có thể đúng do lỗi thừa và lỗi thiếu bù trừ 
 
 ## 6. Thiết lập thí nghiệm
 
-**Cấu hình baseline:** `yolo26n.pt`; lớp COCO 2, 3, 5, 7; `conf=0.35`; ByteTrack với `bytetrack.yaml` của Ultralytics 8.4.182, trong đó `track_high_thresh` và `new_track_thresh` bằng `conf`, bộ phát hiện lọc ở `track_low_thresh=0.1` ([DESIGN.md](DESIGN.md), mục 3); `imgsz=640`; điểm tham chiếu là trung điểm cạnh dưới khung bao; GPU CUDA.
+**Cấu hình baseline:** `yolo26n.pt`; lớp COCO 2, 3, 5, 7; `conf=0.35`; ByteTrack với `bytetrack.yaml` của Ultralytics 8.4.182, trong đó `track_high_thresh` và `new_track_thresh` bằng `conf`, bộ phát hiện lọc ở `track_low_thresh=0.1` ([DESIGN.md](DESIGN.md), mục 3); `imgsz=640`; `agnostic_nms=True`; điểm tham chiếu là trung điểm cạnh dưới khung bao; GPU CUDA.
 
 **Mục tiêu tham chiếu** (trên video đánh giá):
 - MAPE ≤ 15 % trên video điều kiện tốt.
@@ -123,6 +123,6 @@ Các thí nghiệm chính là E2 và một trong E1/E4; E3 và E5 là bổ sung.
 - Góc camera, độ phân giải, mức nén và điều kiện ghi hình của video phụ thuộc vào nguồn dữ liệu; kết quả chỉ phản ánh các video đã chọn.
 - Ground truth do một người tạo; sai lệch được giảm bằng đếm hai lần.
 - Mô hình pretrained trên COCO không được huấn luyện riêng cho camera giao thông; chất lượng có thể giảm khi xe máy dày đặc, bị che khuất hoặc thiếu sáng.
-- YOLO26n có thể trả về hai khung bao gần trùng nhau, khác lớp, cho cùng một phương tiện (ví dụ `car` và `truck`); ByteTrack có thể cấp cho chúng hai ID.
+- YOLO26n đoán lớp riêng cho từng khung hình nên lớp của một phương tiện có thể thay đổi qua các khung. `agnostic_nms=True` giảm khung bao trùng khác lớp nhưng không bảo đảm loại hết; một phương tiện vẫn có thể có hai ID.
 - Đếm theo ID chịu ảnh hưởng của lỗi tracking: phương tiện bị gán hai ID có thể bị đếm hai lần, hai phương tiện chung ID bị đếm thiếu.
 - FPS phụ thuộc phần cứng, nhiệt độ và chế độ nguồn của máy.

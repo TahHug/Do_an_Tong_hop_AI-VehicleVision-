@@ -33,6 +33,9 @@ Với mỗi khung hình: ảnh → danh sách track (ID, khung bao, lớp, confi
 **Mô hình phát hiện: YOLO26n pretrained trên COCO, `conf=0.35`.**
 COCO đã có đủ bốn lớp phương tiện cần dùng nên không cần huấn luyện lại. YOLO26n là cỡ nhỏ và nhanh nhất của họ YOLO26, phù hợp GPU 4 GB. Ngưỡng `conf=0.35` là mức confidence để một phương tiện được cấp ID, là giá trị khởi đầu và được phân tích thêm trong thí nghiệm E2.
 
+**Mỗi vị trí dự đoán một lớp (`agnostic_nms=True`).**
+YOLO26 không dùng bước NMS mà chọn trực tiếp các dự đoán có điểm cao nhất. Ở chế độ mặc định, một vị trí dự đoán có thể được chọn nhiều lần với các lớp khác nhau, ví dụ vừa `car` vừa `truck` trên cùng một khung bao. Với `agnostic_nms=True`, mỗi vị trí chỉ giữ lớp có điểm cao nhất. *Lý do:* hai khung bao trùng nhau của một phương tiện có thể được cấp hai ID và bị đếm hai lần. Tùy chọn này không gộp các khung bao đến từ hai vị trí dự đoán khác nhau, nên không bảo đảm loại hết khung bao trùng.
+
 **Tracker: ByteTrack (`bytetrack.yaml`).**
 ByteTrack ghép cả các khung bao có độ tin cậy thấp vào các track đang có, giúp giữ ID khi phương tiện bị che khuất một phần. Thuật toán có sẵn trong Ultralytics (cần thư viện `lap`). Tracker được chỉ định tường minh vì giá trị mặc định có thể khác giữa các phiên bản (Ultralytics 8.4.182 mặc định dùng `tracktrack.yaml`).
 
